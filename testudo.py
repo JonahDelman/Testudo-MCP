@@ -90,6 +90,24 @@ def format_professor(professor: dict) -> str:
     Course History: {courseData}
     """
 @mcp.tool()
+async def get_courses(dept: str = "", gen_ed: str = "") -> str:
+    """Gets all courses for a specific UMD department or gen-ed. Takes a department code and/or gen ed code as an arg"""
+    if dept != "" and gen_ed != "":
+        url = f"{UMD_API_BASE}/courses?dept_id={dept}&gen_ed={gen_ed}&per_page=100"
+    elif dept != "":
+        url = f"{UMD_API_BASE}/courses?dept_id={dept}&per_page=100"
+    elif gen_ed != "":
+        url = f"{UMD_API_BASE}/courses?gen_ed={gen_ed}&per_page=100"
+    else:
+        url = f"{UMD_API_BASE}/courses?dept_id={dept}&per_page=100" #Defaults to department search if no argument is provided
+    data = await make_request(url)
+
+    if not data:
+        return "Unable to fetch department or no courses found."
+
+    allData = [format_course(c) for c in data]
+    return "\n---\n".join(allData)
+@mcp.tool()
 async def get_course_by_course_code(courses: list) -> str:
     """Gets specific UMD courses. Takes a list of course codes as an arg"""
     courseList = ""
@@ -105,13 +123,9 @@ async def get_course_by_course_code(courses: list) -> str:
     allData = [format_course(c) for c in data]
     return "\n---\n".join(allData)
 @mcp.tool()
-async def get_course_sections(courses: list) -> str:
-    """Gets sections for UMD courses. Takes a list of course codes as an arg"""
-    courseList = ""
-    for course in courses:
-        courseList += f"{course},"
-    courseList = courseList.rstrip(", ")
-    url = f"{UMD_API_BASE}/courses/{courseList}/sections"
+async def get_course_sections(course: str) -> str:
+    """Gets sections for UMD courses. Takes a course codes as an arg"""
+    url = f"{UMD_API_BASE}/courses/{course}/sections"
     data = await make_request(url)
 
     if not data:
@@ -145,8 +159,18 @@ async def get_majors() -> str:
     return "\n---\n".join(majors)
 @mcp.tool()
 async def get_professors_for_course(course: str) -> str:
-    """Gets UMD professors by courses taught. Takes a course code as an argument"""
+    """Gets all UMD professors who teach a specific course. Takes a course code as an argument"""
     url = f"{UMD_API_BASE}/professors?course_id={course}"
+    data = await make_request(url)
+
+    if not data:
+        return "Unable to fetch professors or no professors found."
+    professors = [format_professor(p) for p in data]
+    return "\n---\n".join(professors)
+@mcp.tool()
+async def get_courses_by_professor(professor: str) -> str:
+    """Gets courses taught by an input professor. Takes a professor name as an argument"""
+    url = f"{UMD_API_BASE}/professors?name={professor}"
     data = await make_request(url)
 
     if not data:
