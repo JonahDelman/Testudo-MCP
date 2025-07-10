@@ -2,7 +2,7 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("weather")
+mcp = FastMCP("testudo")
 
 UMD_API_BASE = "https://api.umd.io/v1"
 
@@ -72,9 +72,26 @@ def format_course_section(section : dict) -> str:
     Number of Students on Waitlist: {section.get('waitlist', 'Unknown')}
     Instructors: {instructors}
     """
+def format_major(major: dict) -> str:
+    return f"""
+    Major ID: {major.get('major_id', 'Unknown')}
+    Major Name: {major.get('name', 'Unknown')}
+    College: {major.get('college', 'Unknown')}
+    URL: {major.get('url', 'Unknown')}
+    """
+def format_professor(professor: dict) -> str:
+    courses = professor.get('taught', 'Unknown')
+    courseData = ""
+    if courses != 'Unknown':
+        for course in courses:
+            courseData += f"Taught {course.get('course_id', 'No Course')} in {course.get('semester', 'Unknown')}\n"
+    return f"""
+    Professor Name: {professor.get('name'), 'Unknown'}
+    Course History: {courseData}
+    """
 @mcp.tool()
-async def get_courses(courses: list) -> str:
-    """Gets UMD courses. Takes a list of course codes as an arg"""
+async def get_course_by_course_code(courses: list) -> str:
+    """Gets specific UMD courses. Takes a list of course codes as an arg"""
     courseList = ""
     for course in courses:
         courseList += f"{course},"
@@ -102,7 +119,39 @@ async def get_course_sections(courses: list) -> str:
 
     allData = [format_course_section(c) for c in data]
     return "\n---\n".join(allData)
+@mcp.tool()
+async def get_departments() -> str:
+    """Gets all UMD departments. Takes no arguments"""
+    url = f"{UMD_API_BASE}/courses/departments"
+    data = await make_request(url)
 
+    if not data:
+        return "Unable to fetch course or no departments found."
 
+    departments = ""
+    for c in data:
+        departments += f"{c},"
+    departments = departments.rstrip(", ")
+    return "\n---\n".join(departments)
+@mcp.tool()
+async def get_majors() -> str:
+    """Gets all UMD majors. Takes no arguments"""
+    url = f"{UMD_API_BASE}/majors/list"
+    data = await make_request(url)
+
+    if not data:
+        return "Unable to fetch course or no departments found."
+    majors = [format_major(m) for m in data]
+    return "\n---\n".join(majors)
+@mcp.tool()
+async def get_professors_for_course(course: str) -> str:
+    """Gets UMD professors by courses taught. Takes a course code as an argument"""
+    url = f"{UMD_API_BASE}/professors?course_id={course}"
+    data = await make_request(url)
+
+    if not data:
+        return "Unable to fetch professors or no professors found."
+    professors = [format_professor(p) for p in data]
+    return "\n---\n".join(professors)
 if __name__ == "__main__":
     mcp.run(transport='stdio')
