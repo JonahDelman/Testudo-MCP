@@ -99,7 +99,7 @@ async def get_courses(dept: str = "", gen_ed: str = "") -> str:
     elif gen_ed != "":
         url = f"{UMD_API_BASE}/courses?gen_ed={gen_ed}&per_page=100"
     else:
-        url = f"{UMD_API_BASE}/courses?dept_id={dept}&per_page=100" #Defaults to department search if no argument is provided
+        url = f"{UMD_API_BASE}/courses?dept_id={dept}&per_page=100" # Defaults to department search if no argument is provided
     data = await make_request(url)
 
     if not data:
