@@ -2,6 +2,9 @@
 
 An MCP (Model Context Protocol) server that provides access to University of Maryland (UMD) course data through the UMD.io API. This server enables AI assistants to retrieve comprehensive information about UMD courses, departments, professors, and majors.
 
+## Usage
+Provides context to LLM to answer questions about UMD course offerings. Use the MCP to dynamically create schedules based on user parameters.
+
 ## Features
 
 ### Course Information
@@ -44,6 +47,9 @@ pip install -e .
 ```bash
 python testudo.py
 ```
+
+### Connecting to Claude Desktop
+[Follow these instructions](https://modelcontextprotocol.io/quickstart/user)
 
 The server runs using the Model Context Protocol with stdio transport, making it compatible with AI assistants that support MCP.
 
@@ -135,3 +141,4 @@ For issues or questions:
 1. Check existing GitHub issues
 2. Create a new issue with detailed information
 3. Include error messages and reproduction steps
+
